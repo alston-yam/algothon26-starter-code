@@ -11,7 +11,7 @@ from teamName import getMyPosition as getPosition
 nInst = 0
 nt = 0
 
-pricesFile = "./prices.txt"
+pricesFile = "prices.txt"
 numTestDays = 250
 
 # parameter for scoring function

@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Strategy Dashboard — Algothon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F4F5F7;
+    --panel:#FFFFFF;
+    --border:#E1E4EA;
+    --border-strong:#CBD0DA;
+    --text:#12141A;
+    --text-muted:#676E7C;
+    --text-faint:#9AA0AC;
+    --blue:#2554C7;
+    --blue-fill:rgba(37,84,199,0.10);
+    --blue-soft:#5D7FD1;
+    --green:#12805C;
+    --green-fill:rgba(18,128,92,0.12);
+    --red:#B8392F;
+    --red-fill:rgba(184,57,47,0.12);
+    --radius:10px;
+    --sans:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;
+    padding:28px 32px 60px;
+  }
+  .wrap{max-width:1360px;margin:0 auto;}
+
+  /* ---------- header ---------- */
+  header{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    border-bottom:1px solid var(--border-strong);
+    padding-bottom:16px;
+    margin-bottom:20px;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .brand-eyebrow{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.12em;
+    color:var(--text-faint);
+    text-transform:uppercase;
+    margin:0 0 4px;
+  }
+  h1{
+    font-size:22px;
+    font-weight:700;
+    margin:0;
+    letter-spacing:-0.01em;
+  }
+  .meta{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--text-muted);
+    text-align:right;
+  }
+  .meta span{display:block;}
+
+  /* ---------- stat cards ---------- */
+  .stats{
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    gap:1px;
+    background:var(--border);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    overflow:hidden;
+    margin-bottom:22px;
+  }
+  .stat{
+    background:var(--panel);
+    padding:14px 16px;
+  }
+  .stat-label{
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--text-faint);
+    margin-bottom:6px;
+  }
+  .stat-value{
+    font-family:var(--mono);
+    font-size:21px;
+    font-weight:600;
+    letter-spacing:-0.01em;
+  }
+  .pos{color:var(--green);}
+  .neg{color:var(--red);}
+
+  /* ---------- panels ---------- */
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    margin-bottom:16px;
+    overflow:hidden;
+  }
+  .panel-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    padding:14px 18px 0;
+  }
+  .panel-title{
+    font-size:13px;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--text);
+  }
+  .panel-sub{
+    font-family:var(--mono);
+    font-size:11.5px;
+    color:var(--text-muted);
+  }
+  .panel-body{padding:6px 10px 14px;}
+  .panel-body.tight{padding:0;}
+
+  .row2{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+  }
+  @media (max-width:860px){
+    .stats{grid-template-columns:repeat(3,1fr);}
+    .row2{grid-template-columns:1fr;}
+  }
+
+  svg{display:block;width:100%;height:auto;}
+  .axis-label{
+    font-family:var(--mono);
+    font-size:10px;
+    fill:var(--text-faint);
+  }
+  .gridline{stroke:var(--border);stroke-width:1;}
+  .zero-line{stroke:var(--border-strong);stroke-width:1;stroke-dasharray:3,3;}
+
+  /* ---------- underwater combo divider ---------- */
+  .underwater-divider{
+    border-top:1px dashed var(--border-strong);
+  }
+  .underwater-label{
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--text-faint);
+    padding:8px 18px 0;
+  }
+
+  /* ---------- instrument table ---------- */
+  .table-controls{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:14px 18px 10px;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .search-input{
+    font-family:var(--mono);
+    font-size:12.5px;
+    border:1px solid var(--border-strong);
+    border-radius:6px;
+    padding:7px 10px;
+    background:var(--bg);
+    color:var(--text);
+    width:220px;
+    outline:none;
+  }
+  .search-input:focus{border-color:var(--blue);}
+  .table-scroll{overflow-x:auto;}
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-family:var(--mono);
+    font-size:12px;
+  }
+  thead th{
+    position:sticky;
+    top:0;
+    background:var(--panel);
+    text-align:right;
+    font-size:10.5px;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    color:var(--text-muted);
+    padding:8px 12px;
+    border-bottom:1px solid var(--border-strong);
+    cursor:pointer;
+    user-select:none;
+    white-space:nowrap;
+  }
+  thead th:first-child, thead th:nth-child(2){text-align:left;}
+  thead th:hover{color:var(--text);}
+  thead th.sorted{color:var(--blue);}
+  thead th .arrow{font-size:9px;margin-left:2px;}
+  tbody td{
+    text-align:right;
+    padding:6px 12px;
+    border-bottom:1px solid var(--border);
+    white-space:nowrap;
+  }
+  tbody td:first-child, tbody td:nth-child(2){text-align:left;}
+  tbody tr:hover{background:var(--bg);}
+  .ticker{font-weight:600;}
+  .ticker.algo{color:var(--blue);}
+  .bar-cell{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:6px;
+  }
+  .bar-track{
+    width:60px;
+    height:6px;
+    background:var(--border);
+    border-radius:3px;
+    overflow:hidden;
+  }
+  .bar-fill{height:100%;background:var(--blue-soft);}
+
+  footer{
+    margin-top:22px;
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--text-faint);
+    text-align:center;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <p class="brand-eyebrow">Algothon 2026 · Backtest Report</p>
+      <h1>Strategy Dashboard</h1>
+    </div>
+    <div class="meta">
+      <span id="meta-inst">— instruments</span>
+      <span id="meta-days">— test days</span>
+    </div>
+  </header>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <span class="panel-title">Equity — Cumulative PnL</span>
+      <span class="panel-sub" id="equity-sub"></span>
+    </div>
+    <div class="panel-body tight" id="equity-chart"></div>
+    <div class="underwater-divider">
+      <div class="underwater-label" id="dd-label">Underwater — Drawdown from Peak</div>
+      <div class="panel-body tight" id="drawdown-chart"></div>
+    </div>
+  </div>
+
+  <div class="row2">
+    <div class="panel">
+      <div class="panel-head">
+        <span class="panel-title">Daily PnL</span>
+        <span class="panel-sub" id="pnl-sub"></span>
+      </div>
+      <div class="panel-body tight" id="pnl-chart"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head">
+        <span class="panel-title">Rolling Sharpe (20d)</span>
+        <span class="panel-sub" id="sharpe-sub"></span>
+      </div>
+      <div class="panel-body tight" id="sharpe-chart"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <span class="panel-title">Daily Dollar Volume Traded</span>
+      <span class="panel-sub" id="vol-sub"></span>
+    </div>
+    <div class="panel-body tight" id="vol-chart"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <span class="panel-title">Instrument Breakdown</span>
+      <span class="panel-sub">51 instruments · click a column to sort</span>
+    </div>
+    <div class="table-controls">
+      <input class="search-input" id="filter-input" type="text" placeholder="Filter ticker…">
+      <span class="panel-sub" id="table-count"></span>
+    </div>
+    <div class="table-scroll">
+      <table id="inst-table">
+        <thead>
+          <tr>
+            <th data-key="idx">#</th>
+            <th data-key="name">Ticker</th>
+            <th data-key="finalPos">Final Pos</th>
+            <th data-key="finalDollarExposure">Exposure $</th>
+            <th data-key="maxDollarExposure">Max Exp $</th>
+            <th data-key="pnl">Pnl $ (approx)</th>
+            <th data-key="volume">Volume $</th>
+            <th data-key="volumePct">Vol %</th>
+            <th data-key="priceChangePct">Price Chg %</th>
+            <th data-key="daysActive">Days Active</th>
+          </tr>
+        </thead>
+        <tbody id="inst-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>Generated from prices.txt backtest · figures for analysis, not investment advice</footer>
+</div>
+
+<script>
+let DATA = null;
+
+function fmt(n, opts={}){
+  const {decimals=0, sign=false, dollar=false, pct=false} = opts;
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  let s = Math.abs(n).toLocaleString(undefined, {minimumFractionDigits:decimals, maximumFractionDigits:decimals});
+  let prefix = n < 0 ? '−' : (sign ? '+' : '');
+  if (dollar) s = '$' + s;
+  if (pct) s = s + '%';
+  return prefix + s;
+}
+function fmtCompactDollar(n){
+  const abs = Math.abs(n);
+  let s;
+  if (abs >= 1e6) s = '$' + (abs/1e6).toFixed(2) + 'M';
+  else if (abs >= 1e3) s = '$' + (abs/1e3).toFixed(1) + 'K';
+  else s = '$' + abs.toFixed(0);
+  return (n < 0 ? '−' : '') + s;
+}
+function signClass(n){ return n > 0 ? 'pos' : (n < 0 ? 'neg' : ''); }
+
+/* ---------------- stat cards ---------------- */
+function renderStats(){
+  const s = DATA.summary;
+  const cards = [
+    {label:'Score', value: fmt(s.score, {decimals:2}), cls: signClass(s.score)},
+    {label:'Ann. Sharpe', value: fmt(s.annSharpe, {decimals:2}), cls: signClass(s.annSharpe)},
+    {label:'Mean PnL / day', value: fmt(s.meanPL, {decimals:0, dollar:true}), cls: signClass(s.meanPL)},
+    {label:'Std Dev PnL', value: fmt(s.stdPL, {decimals:0, dollar:true}), cls:''},
+    {label:'Return', value: fmt(s.returnVal*100, {decimals:3, pct:true}), cls: signClass(s.returnVal)},
+    {label:'$ Volume Traded', value: fmtCompactDollar(s.totDvolume), cls:''},
+  ];
+  const el = document.getElementById('stats');
+  el.innerHTML = cards.map(c => `
+    <div class="stat">
+      <div class="stat-label">${c.label}</div>
+      <div class="stat-value ${c.cls}">${c.value}</div>
+    </div>`).join('');
+  document.getElementById('meta-inst').textContent = s.nInst + ' instruments';
+  document.getElementById('meta-days').textContent = s.numTestDays + ' test days';
+  document.getElementById('equity-sub').textContent = 'final value ' + fmtCompactDollar(s.finalValue);
+  document.getElementById('pnl-sub').textContent = 'mean ' + fmtCompactDollar(s.meanPL) + ' / day';
+  document.getElementById('vol-sub').textContent = 'total ' + fmtCompactDollar(s.totDvolume);
+}
+
+/* ---------------- generic svg chart helpers ---------------- */
+const NS = 'http://www.w3.org/2000/svg';
+function svgEl(tag, attrs){
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+}
+function makeScales(n, w, h, padL, padR, padT, padB, yMin, yMax){
+  const innerW = w - padL - padR;
+  const innerH = h - padT - padB;
+  const xStep = n > 1 ? innerW / (n - 1) : 0;
+  const x = i => padL + i * xStep;
+  const yRange = (yMax - yMin) || 1;
+  const y = v => padT + innerH * (1 - (v - yMin) / yRange);
+  return {x, y, xStep, innerW, innerH};
+}
+function pathFromPoints(pts){
+  return pts.map((p,i) => (i===0?'M':'L') + p[0].toFixed(2) + ',' + p[1].toFixed(2)).join(' ');
+}
+
+function lineAreaChart(containerId, series, opts){
+  const w = 1280, h = opts.height || 200;
+  const padL = 46, padR = 14, padT = 14, padB = 22;
+  const vals = series;
+  let yMin = opts.yMin !== undefined ? opts.yMin : Math.min(0, ...vals);
+  let yMax = opts.yMax !== undefined ? opts.yMax : Math.max(0, ...vals);
+  if (yMin === yMax){ yMin -= 1; yMax += 1; }
+  const pad = (yMax - yMin) * 0.08;
+  yMin -= pad; yMax += pad;
+
+  const {x, y} = makeScales(vals.length, w, h, padL, padR, padT, padB, yMin, yMax);
+  const svg = svgEl('svg', {viewBox:`0 0 ${w} ${h}`, preserveAspectRatio:'none'});
+  svg.style.height = h + 'px';
+
+  // gridlines (4 horizontal)
+  const steps = 4;
+  for(let i=0;i<=steps;i++){
+    const v = yMin + (yMax-yMin)*i/steps;
+    const yy = y(v);
+    svg.appendChild(svgEl('line', {x1:padL,x2:w-padR,y1:yy,y2:yy,class:'gridline'}));
+    const lbl = svgEl('text', {x:4, y:yy+3, class:'axis-label'});
+    lbl.textContent = opts.dollar ? fmtCompactDollar(v) : v.toFixed(2);
+    svg.appendChild(lbl);
+  }
+  // zero line emphasis
+  if (yMin < 0 && yMax > 0){
+    const yy = y(0);
+    svg.appendChild(svgEl('line', {x1:padL,x2:w-padR,y1:yy,y2:yy,class:'zero-line'}));
+  }
+
+  const pts = vals.map((v,i) => [x(i), y(v)]);
+  const baseline = y(opts.baseline !== undefined ? opts.baseline : 0);
+  const areaD = pathFromPoints(pts) + ` L ${x(vals.length-1).toFixed(2)},${baseline.toFixed(2)} L ${x(0).toFixed(2)},${baseline.toFixed(2)} Z`;
+  svg.appendChild(svgEl('path', {d: areaD, fill: opts.fill || 'var(--blue-fill)', stroke:'none'}));
+  const lineD = pathFromPoints(pts);
+  svg.appendChild(svgEl('path', {d: lineD, fill:'none', stroke: opts.stroke || 'var(--blue)', 'stroke-width': opts.strokeWidth || 1.6}));
+
+  // hover dots (sparse, every Nth to keep DOM light) with native tooltip
+  const strideN = Math.max(1, Math.floor(vals.length/60));
+  for(let i=0;i<vals.length;i+=strideN){
+    const c = svgEl('circle', {cx:pts[i][0], cy:pts[i][1], r:2.4, fill:opts.stroke||'var(--blue)', opacity:0.85});
+    const title = svgEl('title', {});
+    title.textContent = `Day ${DATA.days[i]}: ${opts.dollar ? fmtCompactDollar(vals[i]) : vals[i].toFixed(3)}`;
+    c.appendChild(title);
+    svg.appendChild(c);
+  }
+
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  container.appendChild(svg);
+  return {x, y, w, h};
+}
+
+function barChart(containerId, series, opts){
+  const w = 1280, h = opts.height || 160;
+  const padL = 46, padR = 14, padT = 14, padB = 22;
+  let yMin = opts.yMin !== undefined ? opts.yMin : Math.min(0, ...series);
+  let yMax = opts.yMax !== undefined ? opts.yMax : Math.max(0, ...series);
+  if (yMin === yMax){ yMin -= 1; yMax += 1; }
+  const padv = (yMax - yMin) * 0.08;
+  yMin -= padv; yMax += padv;
+  const {x, y, xStep} = makeScales(series.length, w, h, padL, padR, padT, padB, yMin, yMax);
+
+  const svg = svgEl('svg', {viewBox:`0 0 ${w} ${h}`, preserveAspectRatio:'none'});
+  svg.style.height = h + 'px';
+
+  const steps = 3;
+  for(let i=0;i<=steps;i++){
+    const v = yMin + (yMax-yMin)*i/steps;
+    const yy = y(v);
+    svg.appendChild(svgEl('line', {x1:padL,x2:w-padR,y1:yy,y2:yy,class:'gridline'}));
+    const lbl = svgEl('text', {x:4, y:yy+3, class:'axis-label'});
+    lbl.textContent = opts.dollar ? fmtCompactDollar(v) : v.toFixed(1);
+    svg.appendChild(lbl);
+  }
+  const zeroY = y(0);
+  if (yMin < 0 && yMax > 0){
+    svg.appendChild(svgEl('line', {x1:padL,x2:w-padR,y1:zeroY,y2:zeroY,class:'zero-line'}));
+  }
+
+  const bw = Math.max(1, xStep * (opts.barWidthFrac || 0.7));
+  series.forEach((v,i) => {
+    const xc = x(i);
+    const yv = y(v);
+    const rectY = Math.min(yv, zeroY);
+    const rectH = Math.max(0.6, Math.abs(yv - zeroY));
+    const color = opts.colorFn ? opts.colorFn(v) : (opts.color || 'var(--blue-soft)');
+    const rect = svgEl('rect', {x:(xc-bw/2).toFixed(2), y:rectY.toFixed(2), width:bw.toFixed(2), height:rectH.toFixed(2), fill:color});
+    const title = svgEl('title', {});
+    title.textContent = `Day ${DATA.days[i]}: ${opts.dollar ? fmtCompactDollar(v) : v.toFixed(3)}`;
+    rect.appendChild(title);
+    svg.appendChild(rect);
+  });
+
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  container.appendChild(svg);
+}
+
+/* ---------------- instrument table ---------------- */
+let sortKey = 'volume';
+let sortDir = -1; // desc
+let filterText = '';
+
+function renderTable(){
+  if (!DATA) return;
+  const maxVolPct = Math.max(...DATA.instruments.map(d => d.volumePct));
+  let rows = DATA.instruments.filter(r => r.name.toLowerCase().includes(filterText.toLowerCase()));
+  rows = rows.slice().sort((a,b) => {
+    const av = a[sortKey], bv = b[sortKey];
+    if (typeof av === 'string') return sortDir * av.localeCompare(bv);
+    return sortDir * (av - bv);
+  });
+  document.getElementById('table-count').textContent = rows.length + ' / ' + DATA.instruments.length + ' shown';
+
+  const tbody = document.getElementById('inst-tbody');
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td>${r.idx}</td>
+      <td class="ticker ${r.idx===0?'algo':''}">${r.name}</td>
+      <td>${fmt(r.finalPos, {sign:true})}</td>
+      <td>${fmt(r.finalDollarExposure, {dollar:true, sign:true})}</td>
+      <td>${fmt(r.maxDollarExposure, {dollar:true})}</td>
+      <td class="${signClass(r.pnl)}">${fmt(r.pnl, {dollar:true, sign:true})}</td>
+      <td>${fmtCompactDollar(r.volume)}</td>
+      <td>
+        <div class="bar-cell">
+          <span>${r.volumePct.toFixed(2)}%</span>
+          <div class="bar-track"><div class="bar-fill" style="width:${(r.volumePct/maxVolPct*100).toFixed(1)}%"></div></div>
+        </div>
+      </td>
+      <td class="${signClass(r.priceChangePct)}">${fmt(r.priceChangePct, {decimals:2, sign:true, pct:true})}</td>
+      <td>${r.daysActive}</td>
+    </tr>`).join('');
+}
+
+document.querySelectorAll('#inst-table thead th').forEach(th => {
+  th.addEventListener('click', () => {
+    const key = th.dataset.key;
+    if (sortKey === key){ sortDir *= -1; } else { sortKey = key; sortDir = -1; }
+    document.querySelectorAll('#inst-table thead th').forEach(t => t.classList.remove('sorted'));
+    th.classList.add('sorted');
+    renderTable();
+  });
+});
+document.getElementById('filter-input').addEventListener('input', e => {
+  filterText = e.target.value;
+  renderTable();
+});
+
+/* ---------------- boot ---------------- */
+async function init(){
+  const res = await fetch('dashboard_data.json?_=' + Date.now());
+  if (!res.ok) throw new Error('missing dashboard_data.json — run gen_dashboard.py first');
+  DATA = await res.json();
+
+  renderStats();
+  lineAreaChart('equity-chart', DATA.cumPL, {height:210, dollar:true, stroke:'var(--blue)', fill:'var(--blue-fill)'});
+  lineAreaChart('drawdown-chart', DATA.drawdown, {height:90, dollar:true, stroke:'var(--red)', fill:'var(--red-fill)', yMax:0, baseline:0});
+  document.getElementById('dd-label').textContent =
+    'Underwater — Drawdown from Peak · max ' + fmtCompactDollar(Math.min(...DATA.drawdown));
+  barChart('pnl-chart', DATA.dailyPL, {height:180, dollar:true, colorFn: v => v >= 0 ? 'var(--green)' : 'var(--red)'});
+  lineAreaChart('sharpe-chart', DATA.rollingSharpe, {height:180, stroke:'var(--blue)', fill:'var(--blue-fill)'});
+  document.getElementById('sharpe-sub').textContent = 'latest ' + DATA.rollingSharpe[DATA.rollingSharpe.length-1].toFixed(2);
+  barChart('vol-chart', DATA.dollarVolume, {height:130, dollar:true, color:'var(--blue-soft)', yMin:0});
+  renderTable();
+}
+init().catch(err => {
+  document.querySelector('.wrap').innerHTML =
+    '<p style="font-family:var(--mono);padding:40px 0;">' + err.message + '</p>';
+});
+</script>
+</body>
+</html>

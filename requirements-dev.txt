@@ -8,8 +8,8 @@
 # this file would re-declare versions of packages already pinned in the
 # grading sandbox, which risks silently overriding them with whatever
 # version happens to be installed on your machine.
-numpy==2.5.1
-pandas==3.0.3
+numpy
+pandas
 scipy
 scikit-learn
 statsmodels
